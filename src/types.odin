@@ -2,6 +2,7 @@ package main
 
 Cell :: struct {
 	x, y:						u32,
+	walls:						Block_Set,
 	left, right, top, bottom:	bool,
 }
 

@@ -4,14 +4,16 @@ import "core:fmt"
 import "core:image"
 import "vendor:raylib"
 
-maze_cell_capture :: proc(pixels: []u32, stride, cell_row, cell_col: u32) -> (cell: Cell) {
+maze_cell_capture :: proc(pixels: []u32, stride, cell_x, cell_y: u32) -> (cell: Cell) {
 	OFFSET :: CELL_SIZE / 2
 
-	pos := [2]f64{ f64(cell_row), f64(cell_col) }
+	pos := [2]f64{ f64(cell_x), f64(cell_y) }
 	pos *= CELL_SIZE
 	pos += OFFSET
 	i := int(pos.x + (pos.y * f64(stride) * CELL_SIZE))
 
+	cell.x = cell_x
+	cell.y = cell_y
 	cell.left = Cell_Color(pixels[i - OFFSET]) == Cell_Color.BLACK
 	cell.right = Cell_Color(pixels[i + OFFSET]) == Cell_Color.BLACK
 
@@ -19,6 +21,12 @@ maze_cell_capture :: proc(pixels: []u32, stride, cell_row, cell_col: u32) -> (ce
 	i = int (pos.x + (pos.y * f64(stride) * CELL_SIZE))
 	cell.top = Cell_Color(pixels[i]) == Cell_Color.BLACK
 	cell.bottom = Cell_Color(pixels[i + int(stride * CELL_SIZE)]) == Cell_Color.BLACK
+	if (cell.bottom) do for i in 0..=10 do fmt.println(cell)
+
+	if (cell.left) do cell.walls |= { .East }
+	if (cell.right) do cell.walls |= { .West }
+	if (cell.top) do cell.walls |= { .North }
+	if (cell.bottom) do cell.walls |= { .South }
 	
 	return
 }
