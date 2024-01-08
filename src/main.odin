@@ -1,8 +1,9 @@
 package main
 
 import "core:fmt"
-import "core:math/rand"
 import "core:image"
+import "core:strconv"
+import "core:math/rand"
 
 
 import "vendor:raylib"
@@ -81,9 +82,22 @@ main :: proc() {
 	defer CloseWindow()
 	SetTargetFPS(60)
 
+	fmt.println("Length :: ", len(path))
+	steps_count := 0
+
 	for !WindowShouldClose() {
+		if IsKeyPressed(.LEFT)  do agent.x -= 1
+		if IsKeyPressed(.RIGHT) do agent.x += 1
+		if IsKeyPressed(.UP)  do  agent.y -= 1
+		if IsKeyPressed(.DOWN) do agent.y += 1
+		if IsKeyPressed(.LEFT) || IsKeyPressed(.RIGHT) || IsKeyPressed(.UP) || IsKeyPressed(.DOWN) do steps_count += 1
 		if (IsKeyPressed(.SPACE)) {
 			if path_index < len(path) {
+				if (path[path_index].y - int(agent.y) < 0) {
+					slot := path[path_index]
+					wall := maze_walls[slot.x][slot.y]
+					fmt.println(wall)
+				}
 				agent.x = u32(path[path_index].x)
 				agent.y = u32(path[path_index].y)
 				path_index = (path_index + 1) % len(path)
@@ -95,13 +109,19 @@ main :: proc() {
 			cell_x, cell_y := int(cell_pos.x), int(cell_pos.y)
 			map_pos := position / WINDOW_ZOOM
 			map_idx := map_pos.x + (map_pos.y * f32(img_maze.width))
-			fmt.println(map_pos, map_idx , maze_walls[cell_x][cell_y])
+
+			fmt.println(map_idx, cell_x, cell_y , maze_walls[cell_x][cell_y])
 		}
 		BeginDrawing()
 			ClearBackground(RAYWHITE)
 			// maze_render(&maze)
 			maze_temp_render(maze_walls)
 			agent_render(agent)
+			buff: [8]byte
+			index_str := strconv.itoa(buff[:], path_index - 1)
+			DrawText(cstring(raw_data(buff[:])), 32, 32, 16, PURPLE)
+			steps_str := strconv.itoa(buff[:], steps_count)
+			DrawText(cstring(raw_data(buff[:])), 32, 64, 16, PURPLE)
 		EndDrawing()
 	}
 }

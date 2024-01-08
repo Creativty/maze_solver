@@ -4,29 +4,28 @@ import "core:fmt"
 import "core:image"
 import "vendor:raylib"
 
-maze_cell_capture :: proc(pixels: []u32, stride, cell_x, cell_y: u32) -> (cell: Cell) {
+maze_cell_capture :: proc(pixels: []u32, c_stride, cx, cy: u32) -> (cell: Cell) {
 	OFFSET :: CELL_SIZE / 2
 
-	pos := [2]f64{ f64(cell_x), f64(cell_y) }
+	cell.x, cell.y = cx, cy
+	stride := c_stride * CELL_SIZE
+
+	pos := [2]u32{ u32(cx), u32(cy) }
 	pos *= CELL_SIZE
 	pos += OFFSET
-	i := int(pos.x + (pos.y * f64(stride) * CELL_SIZE))
+	i := int(pos.x + (pos.y * stride))
 
-	cell.x = cell_x
-	cell.y = cell_y
-	cell.left = Cell_Color(pixels[i - OFFSET]) == Cell_Color.BLACK
-	cell.right = Cell_Color(pixels[i + OFFSET]) == Cell_Color.BLACK
+	if (Cell_Color(pixels[i - OFFSET]) == Cell_Color.BLACK) do cell.walls |= { .East }
+	if (Cell_Color(pixels[i + OFFSET]) == Cell_Color.BLACK) do cell.walls |= { .West }
 
 	pos.y -= OFFSET
-	i = int (pos.x + (pos.y * f64(stride) * CELL_SIZE))
-	cell.top = Cell_Color(pixels[i]) == Cell_Color.BLACK
-	cell.bottom = Cell_Color(pixels[i + int(stride * CELL_SIZE)]) == Cell_Color.BLACK
-	if (cell.bottom) do for i in 0..=10 do fmt.println(cell)
-
-	if (cell.left) do cell.walls |= { .East }
-	if (cell.right) do cell.walls |= { .West }
-	if (cell.top) do cell.walls |= { .North }
-	if (cell.bottom) do cell.walls |= { .South }
+	i = int(pos.x + (pos.y * stride))
+	if (Cell_Color(pixels[i]) == Cell_Color.BLACK) do cell.walls |= { .North }
+	pos.y += CELL_SIZE
+	i = int(pos.x + (pos.y * stride))
+	if (i > len(pixels)) do return
+	if (Cell_Color(pixels[i]) == Cell_Color.BLACK) do cell.walls |= { .South }
+	if (cell.x == 5 && cell.y == 1) do fmt.println("Target pixel", i, "value", pixels[i])
 	
 	return
 }
