@@ -13,24 +13,26 @@ WINDOW_ZOOM :: 3
 
 WINDOW_CELL :: CELL_SIZE * WINDOW_ZOOM
 WINDOW_WIDTH :: WINDOW_CELL * 12
-WINDOW_HEIGHT :: WINDOW_CELL * 8
+WINDOW_TOOLBAR_HEIGHT :: WINDOW_CELL / 2
+WINDOW_HEIGHT :: WINDOW_CELL * 8 + WINDOW_TOOLBAR_HEIGHT
 
 main :: proc() {
 	using raylib
 
 	situation := situation_load("assets/Labyrinthe X.png")
 
-	end := Node{}
-	start := Node{}
- 	end.x = int(situation.cells_width)  - 1
-	end.y = int(situation.cells_height) - 1
+	start, end: Node
+ 	end.x  = situation.cells_width  - 1
+	end.y  = situation.cells_height - 1
 	agent := Agent{ start.x, start.y }
 
 	path := path_generate(situation.blocks, start, end)
 	defer delete(path)
 
-	path_index  := min(1, len(path))
-	steps_count := 0
+	steps_count    := 0
+	path_running   := false
+	frames_elapsed := 0
+	path_index     := min(1, len(path))
 
 	// Initialize window
 	SetConfigFlags({ ConfigFlag.MSAA_4X_HINT })
@@ -39,7 +41,12 @@ main :: proc() {
 
 	SetTargetFPS(60)
 	for !WindowShouldClose() {
-		agent_update(&agent, path[:], situation.blocks, &steps_count, &path_index)
+		if path_running do agent_update_guided(&agent, path[:], &path_index, &frames_elapsed)
+		else do agent_update_manual(&agent, situation.blocks, &steps_count)
+		if IsKeyDown(.UP) do frames_required += 1
+		if IsKeyDown(.DOWN) do frames_required -= 1
+		if frames_required <= 10 do frames_required = 10
+		if IsKeyPressed(.SPACE) do path_running = !path_running
 		if (IsMouseButtonPressed(.LEFT)) {
 			position := GetMousePosition()
 			cell_pos := position / WINDOW_CELL
@@ -53,7 +60,8 @@ main :: proc() {
 			ClearBackground(RAYWHITE)
 			agent_render(agent)
 			walls_render(situation.blocks)
-			debug_render(path_index, steps_count)
+			toolbar_render(path_index, steps_count, path_running)
 		EndDrawing()
+		frames_elapsed += 1
 	}
 }
