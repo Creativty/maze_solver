@@ -9,3 +9,8 @@ array_cast :: proc "contextless" (v: $A/[$N]$T, $Elem_Type: typeid) -> (w: [N]El
 	}
 	return
 }
+
+@(require_results)
+slice_to_cstring :: proc(slice: $T/[]$E) -> cstring {
+	return cstring(raw_data(slice))
+}
