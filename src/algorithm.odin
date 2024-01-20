@@ -2,7 +2,6 @@ package main
 
 import "core:fmt"
 
-Direction :: enum { North, East, South, West }
 Block_Set :: bit_set[Direction]
 
 Node :: struct {

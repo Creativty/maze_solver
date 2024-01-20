@@ -58,12 +58,14 @@ walls_render :: proc(walls: [][]Block_Set) {
 		for wall, y_ in row {
 			x, y := f32(x_) * WINDOW_CELL, f32(y_) * WINDOW_CELL
 
-			WALL_THICK :: 1
-			WALL_COLOR :: BLACK
 			if (.East in wall) do DrawLineEx(Vector2{x, y}, Vector2{x, y + WINDOW_CELL}, WALL_THICK, WALL_COLOR)
 			if (.West in wall) do DrawLineEx(Vector2{x + WINDOW_CELL, y}, Vector2{x + WINDOW_CELL, y + WINDOW_CELL}, WALL_THICK, WALL_COLOR)
 			if (.North in wall) do DrawLineEx(Vector2{x, y}, Vector2{x + WINDOW_CELL, y}, WALL_THICK, WALL_COLOR)
 			if (.South in wall) do DrawLineEx(Vector2{x, y + WINDOW_CELL}, Vector2{x + WINDOW_CELL, y + WINDOW_CELL}, WALL_THICK, WALL_COLOR)
 		}
 	}
+	DrawRectangleLinesEx(
+		Rectangle{ 0, 0, WINDOW_MAZE_WIDTH + 1, WINDOW_MAZE_HEIGHT + 1 },
+		WALL_THICK, WALL_COLOR
+	)
 }

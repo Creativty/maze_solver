@@ -12,9 +12,10 @@
 
 SRCS	:= src/*.odin
 EXEC	:= robotics
+ODIN	:= $$HOME/Builds/Odin/odin
 
 all: $(EXEC)
 	@./$(EXEC)
 
 $(EXEC): $(SRCS)
-	@odin build src -out:$(EXEC)
+	$(ODIN) build src -out:$(EXEC)

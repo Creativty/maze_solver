@@ -1,31 +1,73 @@
 package main
 
+import "core:fmt"
 import "core:mem"
+import "core:strings"
 import "core:strconv"
 import "vendor:raylib"
 
-indicator_manual := "Manual :: "
-indicator_frames := "Frames per step ::              "
-indicator_automatic := "Auto :: "
-frames_required := 45
-
-toolbar_render :: proc(path_index, steps_count: int, path_running: bool) {
+toolbar_render_text :: proc(text: string, pos: [2]int)
+{
 	using raylib
+	DrawText(
+		strings.clone_to_cstring(text),
+		i32(pos.x),
+		WINDOW_HEIGHT - WINDOW_TOOLBAR_HEIGHT + i32(pos.y),
+		TEXT_SIZE,
+		TEXT_COLOR,
+	)
+}
 
-	buff := make([]byte, 32)
+toolbar_render_label :: proc(label: string, value: int, pos: [2]int)
+{
+	using raylib
+	label_len := len(label)
+
+	buff := make([]byte, label_len + 16)
 	defer delete(buff)
 
-	if path_running {
-		mem.copy(raw_data(buff), raw_data(indicator_automatic), 8)
-		strconv.itoa(buff[8:], path_index)
-		DrawText(slice_to_cstring(buff), 32, WINDOW_HEIGHT - WINDOW_TOOLBAR_HEIGHT, 16, BLACK)
+	mem.copy(raw_data(buff), raw_data(label), label_len)
+	strconv.itoa(buff[label_len:], value)
+
+	DrawText(
+		cstring(raw_data(buff)),
+		i32(pos.x),
+		WINDOW_HEIGHT - WINDOW_TOOLBAR_HEIGHT + i32(pos.y),
+		TEXT_SIZE,
+		TEXT_COLOR,
+	)
+}
+
+toolbar_render :: proc(state: ^State) {
+	using raylib
+
+	if !state.is_controlled {
+		toolbar_render_label(
+			"Mode automatic at step ",
+			state.path_index,
+			[2]int{TEXT_SIZE * 2, TEXT_SIZE }
+		)
 	} else {
-		mem.copy(raw_data(buff), raw_data(indicator_manual), 10)
-		strconv.itoa(buff[10:], steps_count)
-		DrawText(slice_to_cstring(buff), 32, WINDOW_HEIGHT - WINDOW_TOOLBAR_HEIGHT, 16, BLACK)
+		toolbar_render_label(
+			"Mode controlled at step ",
+			state.manual_steps_taken,
+			[2]int{TEXT_SIZE * 2, TEXT_SIZE }
+		)
 	}
 
-	mem.copy(raw_data(buff), raw_data(indicator_frames), 32)
-	strconv.itoa(buff[19:], frames_required)
-	DrawText(slice_to_cstring(buff), WINDOW_WIDTH - (8 * 32), WINDOW_HEIGHT - WINDOW_TOOLBAR_HEIGHT, 16, BLACK)
+	toolbar_render_text(
+		fmt.tprintf(
+			"Speed %d/%d",
+			state.frames_per_step,
+			FRAMES_PER_STEP_MAX
+		),
+		[2]int{WINDOW_WIDTH / 2 + TEXT_SIZE * 2, TEXT_SIZE }
+	)
+	DrawRectangleLinesEx(
+		Rectangle{ 
+			0, WINDOW_MAZE_HEIGHT,
+			WINDOW_TOOLBAR_WIDTH + 1, WINDOW_TOOLBAR_HEIGHT + 1
+		},
+		WALL_THICK, WALL_COLOR
+	)
 }
